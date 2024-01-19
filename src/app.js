@@ -8,11 +8,11 @@ const port = process.env.PORT || 3000
 // Set up a default route ('') and return 'Hello World!' in the 
 // response when requests are received
 app.get('', (req, res) => {
-    res.send('Test Update')
+    res.send('Test New Server')
 })
 
 // Configure the server to listen for connections on the port. 
 // Print to the console when ready for connections
 app.listen(port, () => {
-    console.log('Server is up on port ' + port)
+    console.log('Server successfully started on port ' + port)
 })
