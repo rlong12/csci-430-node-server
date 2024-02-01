@@ -1,4 +1,6 @@
-const express = require('express') 
+require('dotenv').config({ debug: true });
+const express = require('express')
+require('./db/mongoose')
 const cors = require('cors'); 
 const userRouter = require('./routers/user')
 const studyGroupRouter = require('./routers/studyGroup')
