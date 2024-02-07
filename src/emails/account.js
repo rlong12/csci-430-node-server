@@ -12,7 +12,7 @@ const sendVerificationEmail = (toEmail, username, token) => {
         firstLine: `Thanks for signing up, ${username}!`,
         secondLine: 'Please verify your email address to begin studying with buddies.',
         thirdLine: 'Thank you!',
-        buttonURL: `https://ambitious-ocean-09c0b6d0f.4.azurestaticapps.net/web-app/verify.html?token=${token}`,
+        buttonURL: `https://ambitious-ocean-09c0b6d0f.4.azurestaticapps.net/verify.html?token=${token}`,
         buttonLabel: 'Verify Email Now'
     })
 }
