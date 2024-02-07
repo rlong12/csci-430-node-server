@@ -5,12 +5,14 @@ const { sendVerificationEmail } = require("../emails/account.js");
 const router = express.Router();
 const auth = require('../middleware/auth');
 
+
 router.post("/user", async (req, res) => {
   delete req.body.email_verified;
   delete req.body.tokens;
   console.log(req.body);
   const user = new User(req.body);
   try {
+    console.log(User)
     await user.save();
     const token = await user.generateAuthToken();
     sendVerificationEmail(user.email, user.username, token);
@@ -19,6 +21,19 @@ router.post("/user", async (req, res) => {
     res.status(400).send(error);
   }
 });
+
+router.get('/user/verification', auth, async (req, res) => {
+  const user = req.user
+  const token = req.token
+
+  console.log(user)
+  console.log(token)
+
+  user.email_verified = true
+  user.save()
+  
+  res.send()
+})
 
 /*router.post("/user/login", async (req, res) => {
   console.log(req.body);
