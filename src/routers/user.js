@@ -3,8 +3,7 @@ const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const { sendVerificationEmail } = require("../emails/account.js");
 const router = express.Router();
-const auth = require('../middleware/auth');
-
+const auth = require("../middleware/auth");
 
 router.post("/user", async (req, res) => {
   delete req.body.email_verified;
@@ -12,7 +11,7 @@ router.post("/user", async (req, res) => {
   console.log(req.body);
   const user = new User(req.body);
   try {
-    console.log(User)
+    console.log(User);
     await user.save();
     const token = await user.generateAuthToken();
     sendVerificationEmail(user.email, user.username, token);
@@ -22,54 +21,41 @@ router.post("/user", async (req, res) => {
   }
 });
 
-router.get('/user/verification', auth, async (req, res) => {
-  const user = req.user
-  const token = req.token
+router.get("/user/verification", auth, async (req, res) => {
+  const user = req.user;
+  const token = req.token;
 
-  console.log(user)
-  console.log(token)
+  console.log(user);
+  console.log(token);
 
-  user.email_verified = true
-  user.save()
-  
-  res.send()
-})
+  user.email_verified = true;
+  user.save();
 
-/*router.post("/user/login", async (req, res) => {
+  res.send();
+});
+
+router.post("/user/login", async (req, res) => {
   console.log(req.body);
 
-  const pw = await bcrypt.hash(req.body.password, 8);
-  console.log("hashed pw: " + pw);
-  let result;
-  let accountFound = false;
   try {
-    result = await User.find();
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-  for (let i = 0; i < result.length; i++) {
-    if (req.body.email.localeCompare(result[i].email) === 0) {
-      accountFound = true;
-      console.log("request email: " + req.body.email);
-      console.log("user in db: " + result[i]);
-      if (await bcrypt.compare(req.body.password, result[i].password)) {
-        if (result[i].email_verified === true) {
-          /*remove req.body.password;
-                remove req.body.tokens;
-                remove req.body.email_verified; 
-          res.status(200).send(req.body); //this will be the user object
+    let result;
+    if (result = await User.findOne({ email: req.body.email })) {
+      if (await bcrypt.compare(req.body.password, result.password)) {
+        if (result.email_verified === true) {
+          res.status(200).send(result);
         } else {
           res.status(401).send("Email not verified");
         }
-      }
-      else {
-        res.status(400).send("PW invalid");
+      } else {
+        res.status(400).send("Incorrect credentials");
       }
     }
+    else {
+      res.status(400).send("Incorrect credentials");
+    }
+  } catch (e) {
+    res.status(400).json({ error: e.message });
   }
-  if (!accountFound) {
-    res.status(400).send("Incorrect credentials");
-  } 
 });
-*/
+
 module.exports = router;
