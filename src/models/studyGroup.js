@@ -51,6 +51,8 @@ const studyGroupSchema = new Schema({
   ],
 });
 
+studyGroupSchema.index({ name: 'text', description: 'text'})
+
 studyGroupSchema.methods.toJSON = function () {
   const group = this;
   const groupObject = group.toObject();
