@@ -1,9 +1,11 @@
 const express = require("express");
 const User = require("../models/user");
+const SpUser = require("../models/spuser");
 const bcrypt = require("bcrypt");
 const { sendVerificationEmail } = require("../emails/account.js");
 const router = express.Router();
-const auth = require("../middleware/auth");
+const auth = require("../middleware/auth")
+const spAuth = require("../middleware/spAuth.js")
 
 router.post("/user", async (req, res) => {
   delete req.body.email_verified;
@@ -67,6 +69,62 @@ router.post("/user/login", async (req, res) => {
 });
 
 router.patch('/user/logout', auth, async (req, res) => {
+  const user = req.user
+
+  try {
+      user.tokens = user.tokens.filter((token) => {
+          return token !== req.token
+      })
+      await user.save()
+
+      res.send()
+  }
+  catch (e) {
+      res.status(500).send()
+  }
+})
+
+
+//SP Code
+router.post("/user/sp", async (req, res) => {
+  delete req.body.tokens;
+  console.log(req.body);
+  const user = new SpUser(req.body);
+  try {
+    console.log(SpUser);
+    await user.save();
+    const token = await user.generateAuthToken();
+    res.status(201).send(user);
+  } catch (error) {
+    if (await SpUser.findOne({ ig_username: req.body.ig_username })) {
+      res.status(400).send("Email is already associated with an account");
+    }
+    res.status(400).send(error);
+  }
+});
+
+router.post("/user/sp/login", async (req, res) => {
+  console.log(req.body);
+
+  try {
+    let user;
+    if ((user = await SpUser.findOne({ phone_number: req.body.phone_number }))) {
+      if (req.body.password.localeCompare(user.password) === 0) {
+          const token = await user.generateAuthToken();
+          console.log(token);
+          res.status(200).send({ user, token });
+      } else {
+        res.status(400).send("Incorrect pw");
+      }
+    } else {
+      res.status(400).send("Incorrect username");
+    }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.patch('/user/sp/logout', spAuth, async (req, res) => {
   const user = req.user
 
   try {

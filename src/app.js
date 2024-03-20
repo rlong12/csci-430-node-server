@@ -5,6 +5,8 @@ const cors = require('cors');
 const userRouter = require('./routers/user')
 const studyGroupRouter = require('./routers/studyGroup')
 const notificationRouter = require('./routers/notification')
+const instaRouter = require('./routers/insta')
+const twitterRouter = require('./routers/tweet')
 
 const app = express() 
 
@@ -19,6 +21,9 @@ app.use(express.json())
 app.use(userRouter)
 app.use(studyGroupRouter) 
 app.use(notificationRouter) 
+app.use(instaRouter)
+app.use(twitterRouter)
+
 
 const port = process.env.PORT || 3000 
 app.listen(port, () => { 

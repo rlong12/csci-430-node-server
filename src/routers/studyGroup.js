@@ -45,7 +45,7 @@ router.get("/studygroups", auth, async (req, res) => {
   const options = {};
 
   filter.$and.push({
-    $or: [{ is_public: true }, { owner: req.user._id }],
+    $or: [{ is_public: true }],
   });
 
   if (req.query.hasOwnProperty("ongoing")) {
@@ -68,7 +68,15 @@ router.get("/studygroups", auth, async (req, res) => {
     });
   }
 
+  if (req.query.hasOwnProperty("mine")) {
+    if (req.query.mine === "true") {
+      filter.$and.push({ owner: req.user._id });
+    }
+  }
+
+  console.log("The filter:")
   console.log(JSON.stringify(filter));
+  console.log("Request User ID: " + req.user._id)
 
   if (req.query.sortBy) {
     const parts = req.query.sortBy.split(":");
