@@ -1,5 +1,6 @@
 const express = require('express')
 const spAuth = require('../middleware/spAuth')
+require('dotenv').config({ debug: true });
 
 const router = express.Router()
 
@@ -46,7 +47,7 @@ async function getAccessToken(auth_code, user) {
     const details = {
         'grant_type': 'authorization_code',
         'client_id': process.env.TWITTER_CLIENT_ID,
-        'redirect_uri': 'https://n0code.net/work/teaching/courses/csci430/studybuddy/twitter-redirect.html',
+        'redirect_uri': 'https://ambitious-ocean-09c0b6d0f.4.azurestaticapps.net/twitter-redirect.html',
         'code_verifier': 'challenge',
         'code': auth_code
     }
