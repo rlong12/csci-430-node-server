@@ -74,9 +74,9 @@ router.get("/studygroups", auth, async (req, res) => {
     }
   }
 
-  console.log("The filter:")
+  console.log("The filter:");
   console.log(JSON.stringify(filter));
-  console.log("Request User ID: " + req.user._id)
+  console.log("Request User ID: " + req.user._id);
 
   if (req.query.sortBy) {
     const parts = req.query.sortBy.split(":");
@@ -153,6 +153,98 @@ router.patch("/studygroup/:id", auth, async (req, res) => {
   } catch (e) {
     console.log(e);
     res.status(500).send("Error saving study group");
+  }
+});
+
+router.delete("/studygroup/:id", auth, async (req, res) => {
+  const user = req.user;
+  const studyGroupId = req.params.id;
+
+  let studyGroup = null;
+
+  if (!mongoose.isValidObjectId(studyGroupId)) {
+    res.status(400).send("Invalid request");
+    return;
+  }
+
+  try {
+    studyGroup = await StudyGroup.findById(studyGroupId);
+
+    if (!studyGroup) {
+      res.status(400).send("Study Group not found");
+      return;
+    }
+
+    //verify user is owner
+    if (!studyGroup.owner.equals(user._id)) {
+      res.status(401).send();
+      return;
+    }
+
+    await studyGroup.deleteOne();
+
+    res.send();
+  } catch (e) {
+    console.log(e);
+    res.status(500).send();
+  }
+});
+
+router.patch("/studygroup/:id/participants", auth, async (req, res) => {
+  const user = req.user;
+  const body = req.body;
+  const studyGroupId = req.params.id;
+
+  if (req.query.hasOwnProperty("add")) {
+    if (req.query.add === "true") {
+      console.log("in add method")
+      let studyGroup = null;
+
+      if (!mongoose.isValidObjectId(studyGroupId)) {
+        res.status(400).send("Invalid request");
+        return;
+      }
+
+      console.log("study group is valid")
+
+      try {
+        studyGroup = await StudyGroup.findById(studyGroupId);
+
+        if (!studyGroup) {
+          res.status(400).send("Study Group not found");
+          return;
+        }
+
+        console.log("User id:" + body.userId);
+        console.log(req.body)
+        //verify user is self
+        if (!body.userId.localeCompare(user._id) === 0) {
+          res.status(401).send();
+          return;
+        }
+
+        let inGroup;
+        for(let i=0; i<studyGroup.participants.length; i++) {
+          if(studyGroup.participants[i].toString().localeCompare(user._id) === 0) {
+            inGroup = true;
+          }
+        }
+        //add user to participants array if there's room
+        if(studyGroup.participants.length < studyGroup.max_participants) {
+          studyGroup.participants.push(body.userId);
+        }
+        else {
+          res.status(400).send("Study group is already full or you are already in group");
+        }
+
+        await studyGroup.save();
+
+        res.send();
+      } catch (e) {
+        console.log(e);
+        res.status(500).send();
+      }
+    }
   }
 });
 

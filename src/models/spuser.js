@@ -27,6 +27,7 @@ const spUserSchema = new Schema({
   },
   tokens: [String],
   profile_pic: Buffer,
+  twitter_refresh_token: String,
 });
 
 spUserSchema.methods.generateAuthToken = async function () {
