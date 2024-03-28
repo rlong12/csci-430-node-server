@@ -1,12 +1,13 @@
 const jwt = require('jsonwebtoken')
 const SpUser = require('../models/spuser')
+require("dotenv").config({ debug: true });
 
 const auth = async (req, res, next) => {
   try {
     console.log("in sp auth method")
     console.log(req.header)
     let token = req.header('Authorization')
-    //console.log(token)
+    console.log(token)
     token = token.replace('Bearer ', '')
     const decoded = jwt.verify(token, process.env.JSON_WEB_TOKEN_SECRET)
     console.log(decoded)

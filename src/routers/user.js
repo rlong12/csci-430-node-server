@@ -97,7 +97,7 @@ router.post("/user/sp", async (req, res) => {
     res.status(201).send(user);
   } catch (error) {
     if (await SpUser.findOne({ ig_username: req.body.ig_username })) {
-      res.status(400).send("Email is already associated with an account");
+      res.status(400).send("Phone number is already associated with an account");
     }
     res.status(400).send(error);
   }
@@ -117,7 +117,7 @@ router.post("/user/sp/login", async (req, res) => {
         res.status(400).send("Incorrect pw");
       }
     } else {
-      res.status(400).send("Incorrect username");
+      res.status(400).send("Incorrect phone");
     }
   } catch (e) {
     res.status(500).json({ error: e.message });
