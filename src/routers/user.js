@@ -140,4 +140,14 @@ router.patch('/user/sp/logout', spAuth, async (req, res) => {
   }
 })
 
+router.get('/user/:id', async (req, res) => {
+  let user;
+  if((user = (await User.findOne({ _id: req.params.id})) )) {
+    res.status(200).send(user);
+  }
+  else {
+    res.status(400).send("no user found");
+  }
+})
+
 module.exports = router;
