@@ -75,6 +75,12 @@ router.get("/studygroups", auth, async (req, res) => {
     }
   }
 
+  if (req.query.hasOwnProperty("member")) {
+    if (req.query.member === "true") {
+      filter.$and.push({ participants: req.user._id });
+    }
+  }
+
   console.log("The filter:");
   console.log(JSON.stringify(filter));
   console.log("Request User ID: " + req.user._id);
