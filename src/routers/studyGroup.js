@@ -247,6 +247,60 @@ router.patch("/studygroup/:id/participants", auth, async (req, res) => {
       }
     }
   }
+
+  if (req.query.hasOwnProperty("remove")) {
+    if (req.query.remove === "true") {
+      console.log("in remove method")
+      let studyGroup = null;
+
+      if (!mongoose.isValidObjectId(studyGroupId)) {
+        res.status(400).send("Invalid request");
+        return;
+      }
+
+      console.log("study group is valid")
+
+      try {
+        studyGroup = await StudyGroup.findById(studyGroupId);
+
+        if (!studyGroup) {
+          res.status(400).send("Study Group not found");
+          return;
+        }
+
+        console.log("User id:" + body.userId);
+        console.log(req.body)
+        //verify user is self or owner
+        if (!body.userId.localeCompare(user._id) === 0 || !body.userId.localeCompare(studyGroup.owner) === 0) {
+          res.status(401).send();
+          return;
+        }
+
+        let inGroup;
+        for(let i=0; i<studyGroup.participants.length; i++) {
+          if(studyGroup.participants[i].toString().localeCompare(body.userId) === 0) {
+            inGroup = true;
+          }
+        }
+        //remove user from participants array if they are in it
+        if(inGroup) {
+          studyGroup.participants = studyGroup.participants.filter((userId) => {
+            return userId === body.userId;
+          })
+        }
+        else {
+          res.status(400).send("User not in study group");
+        }
+
+        await studyGroup.save();
+
+        res.send();
+      } catch (e) {
+        console.log(e);
+        res.status(500).send();
+      }
+    }
+  }
 });
 
 module.exports = router;
