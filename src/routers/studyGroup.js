@@ -290,9 +290,11 @@ router.patch("/studygroup/:id/participants", auth, async (req, res) => {
         }
         //remove user from participants array if they are in it
         if(inGroup) {
+          console.log("old array: " + studyGroup.participants)
           studyGroup.participants = studyGroup.participants.filter((userId) => {
-            return userId === body.userId;
+            return userId.toString() !== body.userId;
           })
+          console.log("new array: " + studyGroup.participants);
         }
         else {
           res.status(400).send("User not in study group");
