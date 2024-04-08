@@ -2,6 +2,7 @@ const validator = require("validator");
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 const jwt = require('jsonwebtoken');
+const Notification = require('./notification')
 
 const Schema = mongoose.Schema;
 
@@ -40,6 +41,10 @@ const userSchema = new Schema({
   majors: [String],
   tokens: [String],
   profile_pic: Buffer,
+  notifications: [{
+    type: Schema.Types.ObjectId,
+      ref: "Notification",
+  }]
 });
 
 userSchema.methods.generateAuthToken = async function () {
