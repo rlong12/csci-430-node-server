@@ -1,6 +1,7 @@
 const express = require("express");
 const Notification = require("../models/notification");
 const User = require("../models/user");
+const StudyGroup = require("../models/studyGroup");
 const router = express.Router();
 const auth = require("../middleware/auth");
 
@@ -11,6 +12,8 @@ router.post("/user/notification", auth, async (req, res) => {
   let receiverEmail = req.body.receiver;
   let receiver;
   let receiverName = '';
+  let studyGroupID = req.body.studyGroupId;
+  let studyGroup;
 
   //get receiver name if receiver is an id
   try {
@@ -36,6 +39,13 @@ router.post("/user/notification", auth, async (req, res) => {
   }
   console.log(receiverName);
 
+  try {
+    studyGroup = await StudyGroup.findOne({ _id: studyGroupID });
+    console.log(studyGroup);
+  } catch (e) {
+    res.status(400).send("Invalid study group");
+  }
+
   if (sender != null && receiver != null) {
     //const notification = new Notification(sender, receiver, req.body.subject, req.body.body, req.body.notificationType);
     let data = {
@@ -43,8 +53,9 @@ router.post("/user/notification", auth, async (req, res) => {
       sender_name: senderName,
       receiver: receiverId,
       receiver_name: receiverName,
-      subject: req.body.subject,
-      body: req.body.body,
+      subject: "You have been invited to join a study group!",
+      body: "You've been invited to join " + studyGroup.name + "!",
+      studyGroupId: req.body.studyGroupId,
     };
     const notification = new Notification(data);
     try {

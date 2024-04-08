@@ -42,7 +42,8 @@ const notificationSchema = new Schema({
     default: "Message Notification",
   },
   studyGroupId: {
-    type: String,
+    type: Schema.Types.ObjectID,
+    ref: "StudyGroup",
   },
 });
 
