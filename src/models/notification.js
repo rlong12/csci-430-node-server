@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const NOTIFICATIONTYPE = require('./notificationtype');
 
 const Schema = mongoose.Schema;
 
@@ -39,7 +40,9 @@ const notificationSchema = new Schema({
   },
   notificationType: {
     type: String,
-    default: "Message Notification",
+    enum: NOTIFICATIONTYPE,
+    default: "Message",
+    required: true,
   },
   studyGroupId: {
     type: Schema.Types.ObjectID,

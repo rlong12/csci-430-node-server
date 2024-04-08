@@ -11,7 +11,7 @@ router.post("/user/notification", auth, async (req, res) => {
   let receiverId = req.body.receiver;
   let receiverEmail = req.body.receiver;
   let receiver;
-  let receiverName = '';
+  let receiverName = "";
   let studyGroupID = req.body.studyGroupId;
   let studyGroup;
 
@@ -27,7 +27,7 @@ router.post("/user/notification", auth, async (req, res) => {
   console.log("receiverName: " + receiverName);
 
   //get receiver name if receiver is an email
-  if (receiverName.localeCompare('') === 0) {
+  if (receiverName.localeCompare("") === 0) {
     try {
       receiver = await User.findOne({ email: receiverEmail });
       console.log(receiver);
@@ -39,32 +39,57 @@ router.post("/user/notification", auth, async (req, res) => {
   }
   console.log(receiverName);
 
-  try {
-    studyGroup = await StudyGroup.findOne({ _id: studyGroupID });
-    console.log(studyGroup);
-  } catch (e) {
-    res.status(400).send("Invalid study group");
+  if (req.body.notificationType.localeCompare("Invite") === 0) {
+    try {
+      studyGroup = await StudyGroup.findOne({ _id: studyGroupID });
+      console.log(studyGroup);
+    } catch (e) {
+      res.status(400).send("Invalid study group");
+    }
+
+    if (sender != null && receiver != null) {
+      let data = {
+        sender: sender,
+        sender_name: senderName,
+        receiver: receiverId,
+        receiver_name: receiverName,
+        subject: "You have been invited to join a study group!",
+        body: "You've been invited to join " + studyGroup.name + "!",
+        notificationType: req.body.notificationType,
+        studyGroupId: req.body.studyGroupId,
+      };
+      const notification = new Notification(data);
+      try {
+        await notification.save();
+        receiver.notifications.push(notification._id);
+        await receiver.save();
+        res.status(201).send(notification);
+      } catch (e) {
+        res.status(400).send(e);
+      }
+    }
   }
 
-  if (sender != null && receiver != null) {
-    //const notification = new Notification(sender, receiver, req.body.subject, req.body.body, req.body.notificationType);
-    let data = {
-      sender: sender,
-      sender_name: senderName,
-      receiver: receiverId,
-      receiver_name: receiverName,
-      subject: "You have been invited to join a study group!",
-      body: "You've been invited to join " + studyGroup.name + "!",
-      studyGroupId: req.body.studyGroupId,
-    };
-    const notification = new Notification(data);
-    try {
-      await notification.save();
-      receiver.notifications.push(notification._id);
-      await receiver.save();
-      res.status(201).send(notification);
-    } catch (e) {
-      res.status(400).send(e);
+  if (req.body.notificationType.localeCompare("Message") === 0) {
+    if (sender != null && receiver != null) {
+      let data = {
+        sender: sender,
+        sender_name: senderName,
+        receiver: receiverId,
+        receiver_name: receiverName,
+        subject: req.body.subject,
+        body: req.body.body,
+        notificationType: req.body.notificationType,
+      };
+      const notification = new Notification(data);
+      try {
+        await notification.save();
+        receiver.notifications.push(notification._id);
+        await receiver.save();
+        res.status(201).send(notification);
+      } catch (e) {
+        res.status(400).send(e);
+      }
     }
   }
 });
