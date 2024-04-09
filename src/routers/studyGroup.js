@@ -91,6 +91,19 @@ router.get("/studygroups", auth, async (req, res) => {
       });
     }
   }
+  else {
+    if (req.query.hasOwnProperty("mine")) {
+      if (req.query.mine === "true") {
+        filter.$and.push({ owner: req.user._id });
+      }
+    }
+
+    if (req.query.hasOwnProperty("member")) {
+      if (req.query.member === "true") {
+        filter.$and.push({ participants: req.user._id });
+      }
+    }
+  }
 
   console.log("The filter:");
   console.log(JSON.stringify(filter));
