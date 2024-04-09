@@ -1,6 +1,5 @@
 const express = require("express");
 const spAuth = require("../middleware/spAuth");
-require("dotenv").config({ debug: true });
 const mongoose = require("mongoose");
 const SpUser = require('../models/spuser');
 
