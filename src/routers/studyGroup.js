@@ -69,15 +69,26 @@ router.get("/studygroups", auth, async (req, res) => {
     });
   }
 
-  if (req.query.hasOwnProperty("mine")) {
-    if (req.query.mine === "true") {
-      filter.$and.push({ owner: req.user._id });
-    }
-  }
+  if (req.query.hasOwnProperty("member") && req.query.hasOwnProperty("mine")) {
+    if (!(req.query.member === "true" && req.query.mine === "true")) {
+      console.log("Either member or mine is not true");
+      if (req.query.hasOwnProperty("mine")) {
+        if (req.query.mine === "true") {
+          filter.$and.push({ owner: req.user._id });
+        }
+      }
 
-  if (req.query.hasOwnProperty("member")) {
-    if (req.query.member === "true") {
-      filter.$and.push({ participants: req.user._id });
+      if (req.query.hasOwnProperty("member")) {
+        if (req.query.member === "true") {
+          filter.$and.push({ participants: req.user._id });
+        }
+      }
+    }
+    else {
+      console.log("Member and mine are both true");
+      filter.$and.push({
+        $or: [{owner: req.user._id}, {participants: req.user._id}],
+      });
     }
   }
 
@@ -204,7 +215,7 @@ router.patch("/studygroup/:id/participants", auth, async (req, res) => {
 
   if (req.query.hasOwnProperty("add")) {
     if (req.query.add === "true") {
-      console.log("in add method")
+      console.log("in add method");
       let studyGroup = null;
 
       if (!mongoose.isValidObjectId(studyGroupId)) {
@@ -212,7 +223,7 @@ router.patch("/studygroup/:id/participants", auth, async (req, res) => {
         return;
       }
 
-      console.log("study group is valid")
+      console.log("study group is valid");
 
       try {
         studyGroup = await StudyGroup.findById(studyGroupId);
@@ -223,7 +234,7 @@ router.patch("/studygroup/:id/participants", auth, async (req, res) => {
         }
 
         console.log("User id:" + body.userId);
-        console.log(req.body)
+        console.log(req.body);
         //verify user is self
         if (!body.userId.localeCompare(user._id) === 0) {
           res.status(401).send();
@@ -231,17 +242,20 @@ router.patch("/studygroup/:id/participants", auth, async (req, res) => {
         }
 
         let inGroup;
-        for(let i=0; i<studyGroup.participants.length; i++) {
-          if(studyGroup.participants[i].toString().localeCompare(user._id) === 0) {
+        for (let i = 0; i < studyGroup.participants.length; i++) {
+          if (
+            studyGroup.participants[i].toString().localeCompare(user._id) === 0
+          ) {
             inGroup = true;
           }
         }
         //add user to participants array if there's room
-        if(studyGroup.participants.length < studyGroup.max_participants) {
+        if (studyGroup.participants.length < studyGroup.max_participants) {
           studyGroup.participants.push(body.userId);
-        }
-        else {
-          res.status(400).send("Study group is already full or you are already in group");
+        } else {
+          res
+            .status(400)
+            .send("Study group is already full or you are already in group");
         }
 
         await studyGroup.save();
@@ -256,7 +270,7 @@ router.patch("/studygroup/:id/participants", auth, async (req, res) => {
 
   if (req.query.hasOwnProperty("remove")) {
     if (req.query.remove === "true") {
-      console.log("in remove method")
+      console.log("in remove method");
       let studyGroup = null;
 
       if (!mongoose.isValidObjectId(studyGroupId)) {
@@ -264,7 +278,7 @@ router.patch("/studygroup/:id/participants", auth, async (req, res) => {
         return;
       }
 
-      console.log("study group is valid")
+      console.log("study group is valid");
 
       try {
         studyGroup = await StudyGroup.findById(studyGroupId);
@@ -275,28 +289,33 @@ router.patch("/studygroup/:id/participants", auth, async (req, res) => {
         }
 
         console.log("User id:" + body.userId);
-        console.log(req.body)
+        console.log(req.body);
         //verify user is self or owner
-        if (!body.userId.localeCompare(user._id) === 0 || !body.userId.localeCompare(studyGroup.owner) === 0) {
+        if (
+          !body.userId.localeCompare(user._id) === 0 ||
+          !body.userId.localeCompare(studyGroup.owner) === 0
+        ) {
           res.status(401).send();
           return;
         }
 
         let inGroup;
-        for(let i=0; i<studyGroup.participants.length; i++) {
-          if(studyGroup.participants[i].toString().localeCompare(body.userId) === 0) {
+        for (let i = 0; i < studyGroup.participants.length; i++) {
+          if (
+            studyGroup.participants[i].toString().localeCompare(body.userId) ===
+            0
+          ) {
             inGroup = true;
           }
         }
         //remove user from participants array if they are in it
-        if(inGroup) {
-          console.log("old array: " + studyGroup.participants)
+        if (inGroup) {
+          console.log("old array: " + studyGroup.participants);
           studyGroup.participants = studyGroup.participants.filter((userId) => {
             return userId.toString() !== body.userId;
-          })
+          });
           console.log("new array: " + studyGroup.participants);
-        }
-        else {
+        } else {
           res.status(400).send("User not in study group");
         }
 
