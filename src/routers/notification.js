@@ -129,12 +129,17 @@ router.get("/notifications", auth, async (req, res) => {
 
 router.patch("/notification/dealtWithStatus", auth, async (req, res) => {
   try {
-    let notification = await Notification.findOne({ _id: req.notificationId });
+    console.log('notification id: ' + req.body.notificationId)
+    let notification = await Notification.findOne({ _id: req.body.notificationId });
+    console.log(notification);
     notification.dealtWith = true;
+    console.log(notification);
     await notification.save();
 
     res.send();
-  } catch (e) {}
+  } catch (e) {
+    console.log(e);
+  }
 });
 
 module.exports = router;
