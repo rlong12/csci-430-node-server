@@ -38,6 +38,10 @@ const notificationSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  dealtWith: {
+    type: Boolean,
+    default: false,
+  },
   notificationType: {
     type: String,
     enum: NOTIFICATIONTYPE,

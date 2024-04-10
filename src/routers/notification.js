@@ -105,7 +105,9 @@ router.get("/notifications", auth, async (req, res) => {
   for (let i = 0; i < notificationIDs.length; i++) {
     try {
       console.log(notificationIDs[i]);
-      let notification = await Notification.findOne({ _id: notificationIDs[i] });
+      let notification = await Notification.findOne({
+        _id: notificationIDs[i],
+      });
       console.log(notification);
       notifications.push(notification);
     } catch (e) {
@@ -116,15 +118,23 @@ router.get("/notifications", auth, async (req, res) => {
 
   console.log(notifications);
 
-  if(notifications.length === notificationIDs.length) {
+  if (notifications.length === notificationIDs.length) {
     res.status(200).send(notifications);
-  }
-  else if(notifications.length > 0) {
+  } else if (notifications.length > 0) {
     res.status(202).send(notifications);
-  }
-  else {
+  } else {
     res.status(400).send("Unable to get notifications...");
   }
+});
+
+router.patch("/notification/dealtWithStatus", auth, async (req, res) => {
+  try {
+    let notification = await Notification.findOne({ _id: req.notificationId });
+    notification.dealtWith = true;
+    await notification.save();
+
+    res.send();
+  } catch (e) {}
 });
 
 module.exports = router;
