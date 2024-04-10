@@ -133,6 +133,7 @@ router.patch("/notification/dealtWithStatus", auth, async (req, res) => {
     let notification = await Notification.findOne({ _id: req.body.notificationId });
     console.log(notification);
     notification.dealtWith = true;
+    notification.isRead = true;
     console.log(notification);
     await notification.save();
 
