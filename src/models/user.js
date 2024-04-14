@@ -44,7 +44,9 @@ const userSchema = new Schema({
   notifications: [{
     type: Schema.Types.ObjectId,
       ref: "Notification",
-  }]
+  }],
+  ig_username: String,
+  ig_password: String,
 });
 
 userSchema.methods.generateAuthToken = async function () {

@@ -1,7 +1,9 @@
 const express = require("express");
+const auth = require("../middleware/auth");
 const spAuth = require("../middleware/spAuth");
 const mongoose = require("mongoose");
-const SpUser = require('../models/spuser');
+const SpUser = require("../models/spuser");
+const User = require("../models/user");
 
 const router = express.Router();
 
@@ -15,37 +17,46 @@ const postToInsta = async (user, data) => {
   console.log(data.caption);
   console.log(data.image_url);
 
-  const ig = new IgApiClient();
-  ig.state.generateDevice(user.ig_username);
-  await ig.account.login(user.ig_username, user.ig_password);
+  try {
+    const ig = new IgApiClient();
+    ig.state.generateDevice(user.ig_username);
+    await ig.account.login(user.ig_username, user.ig_password);
 
-  const imageBuffer = await get({
-    url: data.image_url,
-    encoding: null,
-  });
+    const imageBuffer = await get({
+      url: data.image_url,
+      encoding: null,
+    });
 
-  await ig.publish.photo({
-    file: imageBuffer,
-    caption: data.caption, // nice caption (optional)
-  });
+    await ig.publish.photo({
+      file: imageBuffer,
+      caption: data.caption, // nice caption (optional)
+    });
+    return true;
+  } catch (e) {
+    console.log("unable to post to instagram :(");
+    return false;
+  }
 };
 
-router.post("/user/sp/insta-post", spAuth, (req, res) => {
+router.post("/user/sp/insta-post", auth, async (req, res) => {
   let user = req.user;
   let data = req.body;
 
-  if (postToInsta(user.toJSON(), JSON.stringify(data))) {
+  let result = await postToInsta(user.toJSON(), JSON.stringify(data));
+  console.log(result);
+
+  if (result === true) {
     res.status(201).send("instagram post created!");
   } else {
     res.status(400).send("unable to post to instagram");
   }
 });
 
-router.patch("/user/sp/insta", spAuth, async (req, res) => {
+router.patch("/user/sp/insta", auth, async (req, res) => {
   let user = req.user;
   let body = req.body;
-    console.log(user)
-    console.log(body)
+  console.log(user);
+  console.log(body);
   if (!mongoose.isValidObjectId(user._id)) {
     res.status(400).send("Invalid request");
     return;
@@ -54,8 +65,8 @@ router.patch("/user/sp/insta", spAuth, async (req, res) => {
   console.log("sp user is valid");
 
   try {
-    console.log(user._id)
-    let spUser = await SpUser.findById(user._id);
+    console.log(user._id);
+    let spUser = await User.findById(user._id);
     console.log(spUser);
 
     if (!spUser) {
@@ -72,7 +83,7 @@ router.patch("/user/sp/insta", spAuth, async (req, res) => {
     await spUser.save();
     res.send("Instagram info updated!");
   } catch (e) {
-    res.status(400).send("unable to add instagram info")
+    res.status(400).send("unable to add instagram info");
   }
 });
 

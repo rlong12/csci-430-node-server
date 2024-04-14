@@ -273,7 +273,7 @@ router.patch("/studygroup/:id/participants", auth, async (req, res) => {
 
         await studyGroup.save();
 
-        res.send();
+        res.send(studyGroup);
       } catch (e) {
         console.log(e);
         res.status(500).send();
