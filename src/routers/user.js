@@ -26,6 +26,17 @@ router.post("/user", async (req, res) => {
   }
 });
 
+router.get("/user", auth, async (req,res) => {
+  let user = req.user;
+
+  if(user) {
+    res.send(user);
+  }
+  else {
+    res.status(400).send("User not found");
+  }
+});
+
 router.get("/user/verification", auth, async (req, res) => {
   const user = req.user;
   const token = req.token;
