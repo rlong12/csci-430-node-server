@@ -2,7 +2,6 @@ const express = require("express");
 const auth = require("../middleware/auth");
 const spAuth = require("../middleware/spAuth");
 const mongoose = require("mongoose");
-const SpUser = require("../models/spuser");
 const User = require("../models/user");
 
 const router = express.Router();

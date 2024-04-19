@@ -4,8 +4,8 @@ const SpUser = require("../models/spuser");
 const bcrypt = require("bcrypt");
 const { sendVerificationEmail } = require("../emails/account.js");
 const router = express.Router();
-const auth = require("../middleware/auth")
-const spAuth = require("../middleware/spAuth.js")
+const auth = require("../middleware/auth");
+const spAuth = require("../middleware/spAuth.js");
 
 router.post("/user", async (req, res) => {
   delete req.body.email_verified;
@@ -26,13 +26,55 @@ router.post("/user", async (req, res) => {
   }
 });
 
-router.get("/user", auth, async (req,res) => {
+router.patch("/user", auth, async (req, res) => {
+  let userId = req.user._id;
+  let body = req.body;
+  const mods = req.body;
+  let user;
+
+  console.log("inside of patch user");
+  console.log(userId);
+
+  try {
+    console.log(userId);
+    user = await User.findById(userId);
+
+    console.log(user);
+  } catch (e) {
+    res.status(400).send("couldn't find user");
+  }
+
+  const props = Object.keys(mods);
+  const modifiable = [
+    "username",
+    "school",
+    "majors",
+    "ig_password",
+    "ig_username",
+  ];
+  // check that all the props are modifable
+  const isValid = props.every((prop) => modifiable.includes(prop));
+  if (!isValid) {
+    res.status(400).send("One or more invalid properties");
+    return;
+  }
+  try {
+    // set new values
+    props.forEach((prop) => (user[prop] = mods[prop]));
+    await user.save();
+    res.send(user);
+  } catch (e) {
+    console.log(e);
+    res.status(500).send("Error saving user");
+  }
+});
+
+router.get("/user", auth, async (req, res) => {
   let user = req.user;
 
-  if(user) {
+  if (user) {
     res.send(user);
-  }
-  else {
+  } else {
     res.status(400).send("User not found");
   }
 });
@@ -48,7 +90,7 @@ router.get("/user/verification", auth, async (req, res) => {
   user.tokens = user.tokens.filter((token) => {
     return token !== req.token;
   });
-  console.log(user.tokens)
+  console.log(user.tokens);
   user.save();
 
   res.send();
@@ -79,22 +121,20 @@ router.post("/user/login", async (req, res) => {
   }
 });
 
-router.patch('/user/logout', auth, async (req, res) => {
-  const user = req.user
+router.patch("/user/logout", auth, async (req, res) => {
+  const user = req.user;
 
   try {
-      user.tokens = user.tokens.filter((token) => {
-          return token !== req.token
-      })
-      await user.save()
+    user.tokens = user.tokens.filter((token) => {
+      return token !== req.token;
+    });
+    await user.save();
 
-      res.send()
+    res.send();
+  } catch (e) {
+    res.status(500).send();
   }
-  catch (e) {
-      res.status(500).send()
-  }
-})
-
+});
 
 //SP Code
 router.post("/user/sp", async (req, res) => {
@@ -108,7 +148,9 @@ router.post("/user/sp", async (req, res) => {
     res.status(201).send(user);
   } catch (error) {
     if (await SpUser.findOne({ ig_username: req.body.ig_username })) {
-      res.status(400).send("Phone number is already associated with an account");
+      res
+        .status(400)
+        .send("Phone number is already associated with an account");
     }
     res.status(400).send(error);
   }
@@ -119,11 +161,13 @@ router.post("/user/sp/login", async (req, res) => {
 
   try {
     let user;
-    if ((user = await SpUser.findOne({ phone_number: req.body.phone_number }))) {
+    if (
+      (user = await SpUser.findOne({ phone_number: req.body.phone_number }))
+    ) {
       if (req.body.password.localeCompare(user.password) === 0) {
-          const token = await user.generateAuthToken();
-          console.log(token);
-          res.status(200).send({ user, token });
+        const token = await user.generateAuthToken();
+        console.log(token);
+        res.status(200).send({ user, token });
       } else {
         res.status(400).send("Incorrect pw");
       }
@@ -135,30 +179,28 @@ router.post("/user/sp/login", async (req, res) => {
   }
 });
 
-router.patch('/user/sp/logout', spAuth, async (req, res) => {
-  const user = req.user
+router.patch("/user/sp/logout", spAuth, async (req, res) => {
+  const user = req.user;
 
   try {
-      user.tokens = user.tokens.filter((token) => {
-          return token !== req.token
-      })
-      await user.save()
+    user.tokens = user.tokens.filter((token) => {
+      return token !== req.token;
+    });
+    await user.save();
 
-      res.send()
+    res.send();
+  } catch (e) {
+    res.status(500).send();
   }
-  catch (e) {
-      res.status(500).send()
-  }
-})
+});
 
-router.get('/user/:id', async (req, res) => {
+router.get("/user/:id", async (req, res) => {
   let user;
-  if((user = (await User.findOne({ _id: req.params.id})) )) {
+  if ((user = await User.findOne({ _id: req.params.id }))) {
     res.status(200).send(user);
-  }
-  else {
+  } else {
     res.status(400).send("no user found");
   }
-})
+});
 
 module.exports = router;
